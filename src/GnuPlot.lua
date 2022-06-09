@@ -146,6 +146,7 @@ function GnuPlot:plot(args)
     writeArgs(self.pipe,self.options)
     self.pipe:write("plot " .. args .. "\n")
     self.pipe:close()
+    return self
 end
 
 function GnuPlot:gnuPlot(args)
