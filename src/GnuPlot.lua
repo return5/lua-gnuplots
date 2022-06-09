@@ -33,95 +33,96 @@ local funcTable <const> = ReadOnly({
 })
 
 function GnuPlot:resetBind()
-    self:addOption("resetbind")
+    return self:addOption("resetbind")
 end
 
 function GnuPlot:resetErrors()
-    self:addOption("reset errors")
+    return self:addOption("reset errors")
 end
 
 function GnuPlot:resetSession()
-    self:addOption("reset session")
+    return self:addOption("reset session")
 end
 
 function GnuPlot:reset()
-    self:addOption("reset")
+    return self:addOption("reset")
 end
 
 function GnuPlot:setPolar(value)
-    self:addOption(value and "set polar" or "unset polar")
+    return self:addOption(value and "set polar" or "unset polar")
 end
 
 function GnuPlot:setAngle(value)
-    self:addOption("set angle " .. value)
+    return self:addOption("set angle " .. value)
 end
 
 function GnuPlot:setXRange(value)
-    self:addOption("set xrange " .. value)
+    return self:addOption("set xrange " .. value)
 end
 
 function GnuPlot:setSamp(value)
-    self:addOption("set samp " .. value)
+    return self:addOption("set samp " .. value)
 end
 
 function GnuPlot:setYTics(value)
-    self:addOption("set ytics " .. value)
+    return self:addOption("set ytics " .. value)
 end
 
 function GnuPlot:setY2Tics(value)
-    self:addOption("set y2tics " .. value)
+    return self:addOption("set y2tics " .. value)
 end
 
 function GnuPlot:setY2Label(value)
-    self:addOption("set y2label '" .. value .. "'")
+    return self:addOption("set y2label '" .. value .. "'")
 end
 
 function GnuPlot:setGrid(value)
-    self:addOption("set grid " .. value)
+    return self:addOption("set grid " .. value)
 end
 
 function GnuPlot:setTile(value)
-    self:addOption("set title '" .. value .. "'")
+    return self:addOption("set title '" .. value .. "'")
 end
 
 function GnuPlot:setXLabel(value)
-    self:addOption("set xlabel '" .. value .. "'")
+    return self:addOption("set xlabel '" .. value .. "'")
 end
 
 function GnuPlot:setYLabel(value)
-    self:addOption("set ylabel '" .. value .. "'")
+    return self:addOption("set ylabel '" .. value .. "'")
 end
 
 function GnuPlot:setScale(value)
-    self:addOption("set scale " .. value)
+    return self:addOption("set scale " .. value)
 end
 
 function GnuPlot:setPointSize(value)
-    self:addOption("set pointsize " .. value)
+    return self:addOption("set pointsize " .. value)
 end
 
 function GnuPlot:setKey(value)
-    self:addOption("set key " .. value)
+    return self:addOption("set key " .. value)
 end
 
 function GnuPlot:setTimeStamp(show,format)
-    self:addOption(show and "set timestamp " .. format or "unset timestamp")
+    return self:addOption(show and "set timestamp " .. format or "unset timestamp")
 end
 
 function GnuPlot:setOut(value)
-    self:addOption("set title '" .. value .. "'")
+    return self:addOption("set title '" .. value .. "'")
 end
 
 function GnuPlot:setTerminal(value)
-    self:addOption("set title '" .. value .. "'")
+    return self:addOption("set title '" .. value .. "'")
 end
 
 function GnuPlot:setOrigin(value)
-    self:addOption("set origin " ..value)
+    return self:addOption("set origin " ..value)
 end
 
 function GnuPlot:addOption(option)
     self.options[#self.options + 1] = option
+    return self
 end
 
 local function readTable(gnuPlot,tbl)
