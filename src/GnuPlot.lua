@@ -44,9 +44,8 @@ local funcTable <const> = ReadOnly({
     bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
     margins = function(gnuPlot,v) gnuPlot:setMargins(v) end,
     setminussign = function(gnuPlot) gnuPlot:setMinusSign()  end,
-    border = function(gnuPlot,v) if type(v) == "Table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end
+    border = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end
 })
-
 
 local function setCommandTableCmdOnly(commandsTbl,command)
     commandsTbl[#commandsTbl + 1] = command
@@ -65,7 +64,6 @@ end
 local plotFuncTable <const> = ReadOnly({
 
 })
-
 
 local function loopCommandTables(commandsList,tbl,commands)
     for i=1,#commandsList,1 do
@@ -97,7 +95,7 @@ end
 function GnuPlot:setBorderTable(tbl)
     local commands <const> = {"set border"}
     loopCommandTables(borderCommands,tbl,commands)
-    return self
+    return self:addOption(concat(commands," "))
 end
 
 function GnuPlot:setMinusSign()
@@ -156,7 +154,6 @@ end
 function GnuPlot:setArrow(v)
     return self:addOption("set arrow " .. v)
 end
-
 
 --table which holds all the arrow Commands.
 local arrowCommandList <const> = ReadOnly({
