@@ -1,12 +1,10 @@
 local ReadOnly <const> = require("auxiliary.ReadOnlyTable")
-local PrintTbl <const> = require("auxiliary.PrintableTable")
 
 local setmetatable <const> = setmetatable
 local pairs <const> = pairs
 local openPipe <const> = io.popen
 local concat <const> = table.concat
 local type <const> = type
-local io = io
 
 local GnuPlot <const> = {}
 GnuPlot.__index = GnuPlot
@@ -36,21 +34,26 @@ local funcTable <const> = ReadOnly({
     angle = function (gnuPlot,v) gnuPlot:setAngle(v) end,
     unsetarrow = function(gnuPlot,v) gnuPlot:unsetArrow(v)  end,
     arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end,
-    autoscale = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setAutoScaleTable(v) else gnuPlot:setAutoScale(v) end end
+    autoscale = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setAutoScaleTable(v) else gnuPlot:setAutoScale(v) end end,
     unsetautoscale = function(gnuPlot,v) gnuPlot:unsetAutoScale(v) end,
-    setpolar = function(gnuPlot,v) gnuPlot:setPloar()  end,
-    unsetpolar = function(gnuPlot,v) gnuPlot:unsetPloar() end,
+    setpolar = function(gnuPlot) gnuPlot:setPloar()  end,
+    unsetpolar = function(gnuPlot) gnuPlot:unsetPloar() end,
     lmargin = function(gnuPlot,v) gnuPlot:setLMargin(v) end,
     rmargin = function(gnuPlot,v) gnuPlot:setRMargin(v) end,
     tmargin = function(gnuPlot,v) gnuPlot:setTMargin(v) end,
     bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
-    margins = function(gnuPlot,v) gnuPlot:setMargins(v) end
+    margins = function(gnuPlot,v) gnuPlot:setMargins(v) end,
+    setminussign = function(gnuPlot) gnuPlot:setMinusSign()  end
 })
 
 --table which maps options for plot command to functiosn which set those commands.
 local plotFuncTable <const> = ReadOnly({
 
 })
+
+function GnuPlot:setMinusSign()
+    return self:addOption("set minussign")
+end
 
 function GnuPlot:setLMargin(v)
     return self:addOption("set lmargin " .. v)
@@ -118,57 +121,47 @@ local function setArrowCommandTableValueOnly(arrowCommand,command,tbl)
     arrowCommand[#arrowCommand + 1] = tbl[command]
 end
 
-
-local function setArrowCommandList()
-    local list = PrintTbl({})
-    list["tag"] = function(aC,cmd,tbl) setArrowCommandTableValueOnly(aC,cmd,tbl) end
-    list["from"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["to"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["rto"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["length"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["angle"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["arrowstyle"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["as"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["nohead"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-	list["head"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["backhead"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-	list["heads"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["size"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["fixed"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["filled"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-	list["empty"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["nofilled"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-	list["noborder"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["front"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-	list["back"] = function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end
-    list["linestyle"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["ls"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["linetype"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["lt"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["linewidth"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-	list["lw"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["linecolor"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["lc"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["dashtype"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    list["dt"] = function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end
-    return list
-end
-
 --table which holds all the arrow Commands.
-local arrrowCommandList <const> = setArrowCommandList()
+local arrrowCommandList <const> = {
+    {"tag",function(aC,cmd,tbl) setArrowCommandTableValueOnly(aC,cmd,tbl) end},
+    {"from",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"to",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"rto",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"length",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"angle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"arrowstyle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"as",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"nohead",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"head",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"backhead",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"heads",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"size",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"fixed",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"filled",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"empty",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"nofilled",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"noborder",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"front",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"back",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
+    {"linestyle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"ls",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linetype",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lt",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linewidth",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lw",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linecolor",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lc",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dashtype",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dt",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end}
+}
 
 function GnuPlot:setArrowByTabl(tbl)
     local arrowCommand <const> = {"set arrow"}
-    for k,v in pairs(tbl) do
-        io.write("key in tbl is: ",k,"\n")
-    end
-    for k,func in pairs(arrrowCommandList) do
-        io.write("key in arrowCommand is ",k,"\n")
-        if tbl[k] then
-           func(arrowCommand,k,tbl)
+    for i=1,#arrrowCommandList,1 do
+        if tbl[arrrowCommandList[i][1]] then
+            arrrowCommandList[i][2](arrowCommand,arrrowCommandList[i][1],tbl)
         end
     end
-    io.write("arrow is: ",concat(arrowCommand," "))
     return self:addOption(concat(arrowCommand," "))
 end
 
