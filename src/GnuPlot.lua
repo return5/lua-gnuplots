@@ -1,8 +1,11 @@
 local ReadOnly <const> = require("auxiliary.ReadOnlyTable")
+local PrintTbl <const> = require("auxiliary.PrintableTable")
 
 local setmetatable <const> = setmetatable
 local pairs <const> = pairs
 local openPipe <const> = io.popen
+local concat <const> = table.concat
+local type <const> = type
 
 local GnuPlot <const> = {}
 GnuPlot.__index = GnuPlot
@@ -29,11 +32,61 @@ local funcTable <const> = ReadOnly({
     y2label= function(gnuPlot,v) gnuPlot:setY2Label(v) end,
     grid = function(gnuPlot,v) gnuPlot:setGrid(v) end,
     polar = function(gnuPlot,v) gnuPlot:setPolar(v) end,
-    angle = function (gnuPlot,v) gnuPlot:setAngle(v) end
+    angle = function (gnuPlot,v) gnuPlot:setAngle(v) end,
+    arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end
 })
 
+--table which maps options for plot command to functiosn which set those commands.
+local plotFuncTable <const> = ReadOnly({
+
+})
+
+
+function GnuPlot:setArrow(v)
+    return self:addOption(v)
+end
+
+local function setArrowCommandTableCmdOnly(tbl,arrowCommand,command)
+    arrowCommand[#arrowCommand + 1] = command
+    arrowCommand[#arrowCommand + 1] = "\n"
+end
+
+local function setArrowCommandTableCmdAndValue(tbl,arrowCommand,command)
+    arrowCommand[#arrowCommand + 1] = command
+    arrowCommand[#arrowCommand + 1] = tbl[command]
+    arrowCommand[#arrowCommand + 1] = "\n"
+end
+
+--table which holds all the arrow Commands.
+local arrrowCommandList <const> = PrintTbl({
+    ["tag"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["from"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["to"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["rto"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["length"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["angle"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["arrowstyle"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["as"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["nohead"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["head"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["backhead"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["heads"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["size"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["fixed"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["filled"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["empty"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["nofilled"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["noborder"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["front"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,["back"] = function(tbl,aC,cmd) setArrowCommandTableCmdOnly(tbl,aC,cmd) end,
+    ["linestyle"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["ls"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["linetype"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["lt"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["linewidth"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["lw"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["linecolor"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["lc"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,
+    ["dashtype"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end,["dt"] = function(tbl,aC,cmd) setArrowCommandTableCmdAndValue(tbl,aC,cmd) end
+})
+
+function GnuPlot:setArrowByTabl(tbl)
+    local arrowCommand <const> = {"set arrow"}
+    for k,func in pairs(arrrowCommandList) do
+        if tbl[k] then
+           func(tbl,arrowCommand,k)
+        end
+    end
+end
+
 function GnuPlot:resetBind()
-    return self:addOption("resetbind")
+    return self:addOption("reset bind")
 end
 
 function GnuPlot:resetErrors()
@@ -121,15 +174,24 @@ function GnuPlot:setOrigin(value)
 end
 
 function GnuPlot:addOption(option)
-    self.options[#self.options + 1] = option
+    self.options[#self.options + 1] = option .. "\n"
     return self
 end
+
+function GnuPlot:addPlotOption(option)
+   self.plotOptions[#self.plotOptions + 1] = option .. " "
+    return self
+end
+
+
 
 local function readTable(gnuPlot,tbl)
     if tbl then
         for k,v in pairs(tbl) do
             if funcTable[k] then
                 funcTable[k](gnuPlot,v)
+            elseif plotFuncTable[k] then
+                plotFuncTable[k](gnuPlot,v)
             end
         end
     end
@@ -137,20 +199,20 @@ end
 
 local function writeArgs(pipe,args)
     for i=1,#args,1 do
-        pipe:write(args[i] .. "\n")
+        pipe:write(args[i])
     end
 end
 
 function GnuPlot:plot(args)
     self.pipe = openPipe("gnuplot -persist ","w")
     writeArgs(self.pipe,self.options)
-    self.pipe:write("plot " .. args .. "\n")
+    self.pipe:write("plot ".. concat(self.plotOptions) .. (args and args or "") .. "\n")
     self.pipe:close()
     return self
 end
 
 function GnuPlot:gnuPlot(args)
-    local t <const> = setmetatable({options = {}},self)
+    local t <const> = setmetatable({options = {},plotOptions = {}},self)
     -- using args table, set options for gnuplot
     readTable(t,args)
     return t
