@@ -43,13 +43,62 @@ local funcTable <const> = ReadOnly({
     tmargin = function(gnuPlot,v) gnuPlot:setTMargin(v) end,
     bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
     margins = function(gnuPlot,v) gnuPlot:setMargins(v) end,
-    setminussign = function(gnuPlot) gnuPlot:setMinusSign()  end
+    setminussign = function(gnuPlot) gnuPlot:setMinusSign()  end,
+    border = function(gnuPlot,v) if type(v) == "Table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end
 })
+
+
+local function setCommandTableCmdOnly(commandsTbl,command)
+    commandsTbl[#commandsTbl + 1] = command
+end
+
+local function setCommandTableCmdAndValue(commandsTbl,command,tbl)
+    commandsTbl[#commandsTbl + 1] = command
+    commandsTbl[#commandsTbl + 1] = tbl[command]
+end
+
+local function setCommandTableValueOnly(commandsTbl,command,tbl)
+    commandsTbl[#commandsTbl + 1] = tbl[command]
+end
 
 --table which maps options for plot command to functiosn which set those commands.
 local plotFuncTable <const> = ReadOnly({
 
 })
+
+
+local function loopCommandTables(commandsList,tbl,commands)
+    for i=1,#commandsList,1 do
+        if tbl[commandsList[i][1]] then
+            commandsList[i][2](commands,commandsList[i][1],tbl)
+        end
+    end
+end
+
+local borderCommands <const> = ReadOnly({
+    {"integer",function(aC,cmd,tbl) setCommandTableValueOnly(aC,cmd,tbl) end},
+    {"draw",function(aC,cmd,tbl)  setCommandTableValueOnly(aC,cmd,tbl) end},
+    {"linestyle",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"ls",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linetype",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linewidth",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lw",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linecolor",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lc",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dashtype",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
+})
+
+function GnuPlot:setBorder(v)
+    return self:addOption("set border " .. v)
+end
+
+function GnuPlot:setBorderTable(tbl)
+    local commands <const> = {"set border"}
+    loopCommandTables(borderCommands,tbl,commands)
+    return self
+end
 
 function GnuPlot:setMinusSign()
     return self:addOption("set minussign")
@@ -108,60 +157,44 @@ function GnuPlot:setArrow(v)
     return self:addOption("set arrow " .. v)
 end
 
-local function setArrowCommandTableCmdOnly(arrowCommand,command)
-    arrowCommand[#arrowCommand + 1] = command
-end
-
-local function setArrowCommandTableCmdAndValue(arrowCommand,command,tbl)
-    arrowCommand[#arrowCommand + 1] = command
-    arrowCommand[#arrowCommand + 1] = tbl[command]
-end
-
-local function setArrowCommandTableValueOnly(arrowCommand,command,tbl)
-    arrowCommand[#arrowCommand + 1] = tbl[command]
-end
 
 --table which holds all the arrow Commands.
-local arrrowCommandList <const> = {
-    {"tag",function(aC,cmd,tbl) setArrowCommandTableValueOnly(aC,cmd,tbl) end},
-    {"from",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"to",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"rto",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"length",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"angle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"arrowstyle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"as",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"nohead",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"head",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"backhead",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"heads",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"size",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"fixed",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"filled",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"empty",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"nofilled",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"noborder",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"front",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"back",function(aC,cmd) setArrowCommandTableCmdOnly(aC,cmd) end},
-    {"linestyle",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"ls",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"linetype",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"lt",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"linewidth",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"lw",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"linecolor",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"lc",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"dashtype",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end},
-    {"dt",function(aC,cmd,tbl) setArrowCommandTableCmdAndValue(aC,cmd,tbl) end}
-}
+local arrowCommandList <const> = ReadOnly({
+    {"tag",function(aC,cmd,tbl) setCommandTableValueOnly(aC,cmd,tbl) end},
+    {"from",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"to",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"rto",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"length",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"angle",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"arrowstyle",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"as",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"nohead",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"head",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"backhead",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"heads",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"size",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"fixed",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"filled",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"empty",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"nofilled",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"noborder",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"front",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"back",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"linestyle",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"ls",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linetype",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linewidth",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lw",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"linecolor",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"lc",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dashtype",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"dt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
+})
 
 function GnuPlot:setArrowByTabl(tbl)
     local arrowCommand <const> = {"set arrow"}
-    for i=1,#arrrowCommandList,1 do
-        if tbl[arrrowCommandList[i][1]] then
-            arrrowCommandList[i][2](arrowCommand,arrrowCommandList[i][1],tbl)
-        end
-    end
+    loopCommandTables(arrowCommandList,tbl,arrowCommand)
     return self:addOption(concat(arrowCommand," "))
 end
 
@@ -262,8 +295,6 @@ function GnuPlot:addPlotOption(option)
    self.plotOptions[#self.plotOptions + 1] = option .. " "
     return self
 end
-
-
 
 local function readTable(gnuPlot,tbl)
     if tbl then
