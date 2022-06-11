@@ -34,7 +34,8 @@ local funcTable <const> = ReadOnly({
     grid = function(gnuPlot,v) gnuPlot:setGrid(v) end,
     polar = function(gnuPlot,v) gnuPlot:setPolar(v) end,
     angle = function (gnuPlot,v) gnuPlot:setAngle(v) end,
-    arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end
+    arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end,
+    autoscale = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setAutoScaleTable(v) else gnuPlot:setAutoScale(v) end end
 })
 
 --table which maps options for plot command to functiosn which set those commands.
@@ -42,6 +43,26 @@ local plotFuncTable <const> = ReadOnly({
 
 })
 
+function GnuPlot:unsetAutoScale(axes)
+    return self:addOption("unset autoscale " .. axes and axes or "")
+end
+
+function GnuPlot:setAutoScale(autoscale)
+    return self:addOption("set autoscale " .. autoscale)
+end
+
+function GnuPlot:setAutoScaleTable(tbl)
+    if tbl then
+        for i = 1,#tbl,1 do
+            self:addOption("set autoscale " .. tbl[i])
+        end
+    end
+    return self
+end
+
+function GnuPlot:unsetArrow(tag)
+    return self:addOption("unset arrow " .. tag and tag or "")
+end
 
 function GnuPlot:setArrow(v)
     return self:addOption("set arrow " .. v)
