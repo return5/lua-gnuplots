@@ -34,14 +34,51 @@ local funcTable <const> = ReadOnly({
     grid = function(gnuPlot,v) gnuPlot:setGrid(v) end,
     polar = function(gnuPlot,v) gnuPlot:setPolar(v) end,
     angle = function (gnuPlot,v) gnuPlot:setAngle(v) end,
+    unsetarrow = function(gnuPlot,v) gnuPlot:unsetArrow(v)  end,
     arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end,
     autoscale = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setAutoScaleTable(v) else gnuPlot:setAutoScale(v) end end
+    unsetautoscale = function(gnuPlot,v) gnuPlot:unsetAutoScale(v) end,
+    setpolar = function(gnuPlot,v) gnuPlot:setPloar()  end,
+    unsetpolar = function(gnuPlot,v) gnuPlot:unsetPloar() end,
+    lmargin = function(gnuPlot,v) gnuPlot:setLMargin(v) end,
+    rmargin = function(gnuPlot,v) gnuPlot:setRMargin(v) end,
+    tmargin = function(gnuPlot,v) gnuPlot:setTMargin(v) end,
+    bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
+    margins = function(gnuPlot,v) gnuPlot:setMargins(v) end
 })
 
 --table which maps options for plot command to functiosn which set those commands.
 local plotFuncTable <const> = ReadOnly({
 
 })
+
+function GnuPlot:setLMargin(v)
+    return self:addOption("set lmargin " .. v)
+end
+
+function GnuPlot:setRMargin(v)
+    return self:addOption("set rmargin " .. v)
+end
+
+function GnuPlot:setTMargin(v)
+    return self:addOption("set tmargin " .. v)
+end
+
+function GnuPlot:setBMargin(v)
+    return self:addOption("set bmargin " .. v)
+end
+
+function GnuPlot:setMargins(v)
+    return self:addOption("set margins " .. v)
+end
+
+function GnuPlot:unsetPolar()
+    return self:addOption("unset polar")
+end
+
+function GnuPlot:setPolar()
+    return self:addOption("set polar")
+end
 
 function GnuPlot:unsetAutoScale(axes)
     return self:addOption("unset autoscale " .. axes and axes or "")
@@ -151,8 +188,8 @@ function GnuPlot:reset()
     return self:addOption("reset")
 end
 
-function GnuPlot:setPolar(value)
-    return self:addOption(value and "set polar" or "unset polar")
+function GnuPlot:setPolar()
+    return self:addOption("set polar")
 end
 
 function GnuPlot:setAngle(value)
