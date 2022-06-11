@@ -44,8 +44,27 @@ local funcTable <const> = ReadOnly({
     bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
     margins = function(gnuPlot,v) gnuPlot:setMargins(v) end,
     setminussign = function(gnuPlot) gnuPlot:setMinusSign()  end,
-    border = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end
+    border = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end,
+    unsetborder = function(gnuPlot) gnuPlot:unsetBorder()  end,
+    boxwidth = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBoxWidthTable(v) else gnuPlot:setBoxWidth(v) end end,
+    colorsequence = function(gnuPlot,v) gnuPlot:setColorSequence(v)  end,
+    clip = function(gnuPlot,v) gnuPlot:setClip(v)  end,
+    unsetclip = function(gnuPlot,v) gnuPlot:unsetClip(v)  end
 })
+
+--table which maps options for plot command to functions which set those commands.
+local plotFuncTable <const> = ReadOnly({
+
+})
+
+local function addOptionToTable1(self,option,value1)
+   return self:addOption(option .. value1 and value1 or "")
+end
+
+local function addOptionToTable2(self,option,value1,value2)
+    return self:addOption(option .. value1 and value1 or "" .. value2 and value2 or "")
+
+end
 
 local function setCommandTableCmdOnly(commandsTbl,command)
     commandsTbl[#commandsTbl + 1] = command
@@ -60,17 +79,43 @@ local function setCommandTableValueOnly(commandsTbl,command,tbl)
     commandsTbl[#commandsTbl + 1] = tbl[command]
 end
 
---table which maps options for plot command to functiosn which set those commands.
-local plotFuncTable <const> = ReadOnly({
-
-})
-
 local function loopCommandTables(commandsList,tbl,commands)
     for i=1,#commandsList,1 do
         if tbl[commandsList[i][1]] then
             commandsList[i][2](commands,commandsList[i][1],tbl)
         end
     end
+end
+
+local function setCommandsFromTable(self,commands,commandList,tbl)
+    loopCommandTables(commandList,tbl,commands)
+    return self:addOption(concat(commands, " "))
+end
+
+function GnuPlot:unsetClip(v)
+    return addOptionToTable1(self,"unset clip ",v)
+end
+
+function GnuPlot:setClip(v)
+    return addOptionToTable1(self,"set clip ",v)
+end
+
+local boxWidthCommands <const> = ReadOnly({
+    {"width",function()  end},
+    {"absolute",function()  end},
+    {"relative",function()  end}
+})
+
+function GnuPlot:setBoxWidthTable(tbl)
+    return setCommandsFromTable(self,{"set boxwidth"},boxWidthCommands,tbl)
+end
+
+function GnuPlot:setBoxWidth(v)
+    return addOptionToTable1(self,"set boxwidth ",v)
+end
+
+function GnuPlot:setColorSequence(v)
+    return addOptionToTable1(self,"set colorsequence ",v)
 end
 
 local borderCommands <const> = ReadOnly({
@@ -88,14 +133,16 @@ local borderCommands <const> = ReadOnly({
     {"dt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
 
+function GnuPlot:unsetBorder()
+    return self:addOption("unset border")
+end
+
 function GnuPlot:setBorder(v)
-    return self:addOption("set border " .. v)
+    return addOptionToTable1(self,"set border ",v)
 end
 
 function GnuPlot:setBorderTable(tbl)
-    local commands <const> = {"set border"}
-    loopCommandTables(borderCommands,tbl,commands)
-    return self:addOption(concat(commands," "))
+    return setCommandsFromTable(self,{"set border"},borderCommands,tbl)
 end
 
 function GnuPlot:setMinusSign()
@@ -103,23 +150,23 @@ function GnuPlot:setMinusSign()
 end
 
 function GnuPlot:setLMargin(v)
-    return self:addOption("set lmargin " .. v)
+    return addOptionToTable1(self,"set lmargin ",v)
 end
 
 function GnuPlot:setRMargin(v)
-    return self:addOption("set rmargin " .. v)
+    return addOptionToTable1(self,"set rmargin ",v)
 end
 
 function GnuPlot:setTMargin(v)
-    return self:addOption("set tmargin " .. v)
+    return addOptionToTable1(self,"set tmargin ",v)
 end
 
 function GnuPlot:setBMargin(v)
-    return self:addOption("set bmargin " .. v)
+    return addOptionToTable1(self,"set bmargin ",v)
 end
 
 function GnuPlot:setMargins(v)
-    return self:addOption("set margins " .. v)
+    return addOptionToTable1(self,"set margins ",v)
 end
 
 function GnuPlot:unsetPolar()
@@ -131,28 +178,28 @@ function GnuPlot:setPolar()
 end
 
 function GnuPlot:unsetAutoScale(axes)
-    return self:addOption("unset autoscale " .. axes and axes or "")
+    return addOptionToTable1(self,"unset autoscale ",axes)
 end
 
 function GnuPlot:setAutoScale(autoscale)
-    return self:addOption("set autoscale " .. autoscale)
+    return addOptionToTable1(self,"set autoscale ",autoscale)
 end
 
 function GnuPlot:setAutoScaleTable(tbl)
     if tbl then
         for i = 1,#tbl,1 do
-            self:addOption("set autoscale " .. tbl[i])
+            addOptionToTable1(self,"set autoscale ",tbl[i])
         end
     end
     return self
 end
 
 function GnuPlot:unsetArrow(tag)
-    return self:addOption("unset arrow " .. tag and tag or "")
+    return addOptionToTable1(self,"unset arrow ",tag)
 end
 
 function GnuPlot:setArrow(v)
-    return self:addOption("set arrow " .. v)
+    return addOptionToTable1(self,"set arrow ",v)
 end
 
 --table which holds all the arrow Commands.
@@ -190,9 +237,7 @@ local arrowCommandList <const> = ReadOnly({
 })
 
 function GnuPlot:setArrowByTabl(tbl)
-    local arrowCommand <const> = {"set arrow"}
-    loopCommandTables(arrowCommandList,tbl,arrowCommand)
-    return self:addOption(concat(arrowCommand," "))
+    return setCommandsFromTable(self,{"set arrow"},arrowCommandList,tbl)
 end
 
 function GnuPlot:resetBind()
@@ -216,55 +261,55 @@ function GnuPlot:setPolar()
 end
 
 function GnuPlot:setAngle(value)
-    return self:addOption("set angle " .. value)
+    return addOptionToTable1(self,"set angle ",value)
 end
 
 function GnuPlot:setXRange(value)
-    return self:addOption("set xrange " .. value)
+    return addOptionToTable1(self,"set xrange ",value)
 end
 
 function GnuPlot:setSamp(value)
-    return self:addOption("set samp " .. value)
+    return addOptionToTable1(self,"set samp ",value)
 end
 
 function GnuPlot:setYTics(value)
-    return self:addOption("set ytics " .. value)
+    return addOptionToTable1(self,"set ytics ",value)
 end
 
 function GnuPlot:setY2Tics(value)
-    return self:addOption("set y2tics " .. value)
+    return addOptionToTable1(self,"set y2tics ",value)
 end
 
 function GnuPlot:setY2Label(value)
-    return self:addOption("set y2label '" .. value .. "'")
+    return addOptionToTable2(self,"set y2label '",value,"'")
 end
 
 function GnuPlot:setGrid(value)
-    return self:addOption("set grid " .. value)
+    return addOptionToTable1(self,"set grid ",value)
 end
 
 function GnuPlot:setTile(value)
-    return self:addOption("set title '" .. value .. "'")
+    return addOptionToTable2(self,"set title '",value,"'")
 end
 
 function GnuPlot:setXLabel(value)
-    return self:addOption("set xlabel '" .. value .. "'")
+    return addOptionToTable2(self,"set xlabel '",value,"'")
 end
 
 function GnuPlot:setYLabel(value)
-    return self:addOption("set ylabel '" .. value .. "'")
+    return addOptionToTable2(self,"set ylabel '",value,"'")
 end
 
 function GnuPlot:setScale(value)
-    return self:addOption("set scale " .. value)
+    return addOptionToTable1(self,"set scale ",value)
 end
 
 function GnuPlot:setPointSize(value)
-    return self:addOption("set pointsize " .. value)
+    return addOptionToTable1(self,"set pointsize ",value)
 end
 
 function GnuPlot:setKey(value)
-    return self:addOption("set key " .. value)
+    return addOptionToTable1(self,"set key ",value)
 end
 
 function GnuPlot:setTimeStamp(show,format)
@@ -272,15 +317,15 @@ function GnuPlot:setTimeStamp(show,format)
 end
 
 function GnuPlot:setOut(value)
-    return self:addOption("set title '" .. value .. "'")
+    return addOptionToTable2(self,"set title '",value,"'")
 end
 
 function GnuPlot:setTerminal(value)
-    return self:addOption("set title '" .. value .. "'")
+    return addOptionToTable2(self,"set title '",value,"'")
 end
 
 function GnuPlot:setOrigin(value)
-    return self:addOption("set origin " ..value)
+    return addOptionToTable1(self,"set origin ",value)
 end
 
 function GnuPlot:addOption(option)
