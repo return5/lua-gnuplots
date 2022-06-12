@@ -55,7 +55,7 @@ local funcTable <const> = ReadOnly({
 	unsetclip = function(gnuPlot,v) gnuPlot:unsetClip(v) end,
 	cntrlabel = function(gnuPlot,v) gnuPlot:setCntrLabel(v) end,
 	cntrparam = function(gnuPlot,v) gnuPlot:setCntrParam(v) end,
-	cntrlabel = function(gnuPlot,v) gnuPlot:setColorBox(v) end
+	colorbox = function(gnuPlot,v) gnuPlot:setColorBox(v) end
 })
 
 --table which maps options for plot command to functions which set those commands.
@@ -71,7 +71,6 @@ end
 --add option to options table with a null check on the two values for it.
 local function addTwoOptionToTable(self,option,value1,value2)
 	return self:addOption(option .. (value1 and value1 or "") .. (value2 and value2 or ""))
-
 end
 
 local function setCommandTableCmdOnly(commandsTbl,command)
@@ -98,6 +97,34 @@ end
 local function setCommandsFromTable(self,commands,commandList,tbl)
 	loopCommandTables(commandList,tbl,commands)
 	return self:addOption(concat(commands, " "))
+end
+
+local colorBoxCmds <const> = ReadOnly({
+	{"vertical",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"horizontal",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"invert",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"noinvert",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"default",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"user",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"origin",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+	{"size",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+	{"front",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"back",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+	{"noborder",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+	{"bdefault",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+	{"border",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
+})
+
+function GnuPlot:unsetColorBox()
+	return self:addOption("unset colorbox")
+end
+
+function GnuPlot:setColorBox(v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set colorbox"},colorBoxCmds,v)
+	else
+		return addOneOptionToTable(self,"set colorbox",v)
+	end
 end
 
 local cntrlParamCmds <const> = ReadOnly({
@@ -143,7 +170,7 @@ end
 local boxWidthCommands <const> = ReadOnly({
 	{"width",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"absolute",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
-	{"relative",function(aC,cmd) setCommandTableCmdOnly(aC,cmd)  end}
+	{"relative",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end}
 })
 
 function GnuPlot:setBoxWidth(v)
