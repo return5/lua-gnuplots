@@ -55,7 +55,9 @@ local funcTable <const> = ReadOnly({
 	unsetclip = function(gnuPlot,v) gnuPlot:unsetClip(v) end,
 	cntrlabel = function(gnuPlot,v) gnuPlot:setCntrLabel(v) end,
 	cntrparam = function(gnuPlot,v) gnuPlot:setCntrParam(v) end,
-	colorbox = function(gnuPlot,v) gnuPlot:setColorBox(v) end
+	colorbox = function(gnuPlot,v) gnuPlot:setColorBox(v) end,
+	contour = function(gnuPlot,v) gnuPlot:setContour(v) end,
+	unsetcontour = function(gnuPlot) gnuPlot:unsetcontour() end
 })
 
 --table which maps options for plot command to functions which set those commands.
@@ -114,6 +116,14 @@ local colorBoxCmds <const> = ReadOnly({
 	{"bdefault",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"border",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
+
+function GnuPlot:unsetContour()
+	return addOneOptionToTable(self,"unset contour")
+end
+
+function GnuPlot:setContour(v)
+	return addOneOptionToTable(self,"set contour ",v)
+end
 
 function GnuPlot:unsetColorBox()
 	return self:addOption("unset colorbox")
@@ -210,9 +220,6 @@ function GnuPlot:setBorder(v)
 	else
 		return addOneOptionToTable(self,"set border ",v)
 	end
-end
-
-function GnuPlot:setBorderTable(tbl)
 end
 
 function GnuPlot:setMinusSign()
@@ -413,12 +420,12 @@ function GnuPlot:setOrigin(value)
 end
 
 function GnuPlot:addOption(option)
-	self.options[#self.options + 1] = option .. "\n"
+	self.options[#self.options + 1] = option
 	return self
 end
 
 function GnuPlot:addPlotOption(option)
-   self.plotOptions[#self.plotOptions + 1] = option .. " "
+   self.plotOptions[#self.plotOptions + 1] = option
 	return self
 end
 
