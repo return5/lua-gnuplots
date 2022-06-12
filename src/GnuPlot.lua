@@ -21,8 +21,8 @@ local funcTable <const> = ReadOnly({
 	scale  = function(gnuPlot,v) gnuPlot:setScale(v) end,
 	pointsize = function(gnuPlot,v) gnuPlot:setPointSize(v) end,
 	key = function(gnuPlot,v) gnuPlot:setKey(v) end,
-	timestamp = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setTimeStampTable(v) else gnuPlot:setTimeStamp(v) end end,
-	time = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setTimeStampTable(v) else gnuPlot:setTimeStamp(v) end end,
+	timestamp = function(gnuPlot,v) gnuPlot:setTimeStamp(v) end,
+	time = function(gnuPlot,v) gnuPlot:setTimeStamp(v) end,
 	unsettimestamp = function(gnuPlot) gnuPlot:unsettimestamp() end,
 	out = function(gnuPlot,v) gnuPlot:setOut(v) end,
 	terminal = function(gnuPlot,v) gnuPlot:setTerminal(v) end,
@@ -36,8 +36,8 @@ local funcTable <const> = ReadOnly({
 	polar = function(gnuPlot,v) gnuPlot:setPolar(v) end,
 	angle = function (gnuPlot,v) gnuPlot:setAngle(v) end,
 	unsetarrow = function(gnuPlot,v) gnuPlot:unsetArrow(v)  end,
-	arrow = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setArrowByTabl(v) else gnuPlot:setArrow(v) end end,
-	autoscale = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setAutoScaleTable(v) else gnuPlot:setAutoScale(v) end end,
+	arrow = function(gnuPlot,v) gnuPlot:setArrow(v) end,
+	autoscale = function(gnuPlot,v) gnuPlot:setAutoScale(v) end,
 	unsetautoscale = function(gnuPlot,v) gnuPlot:unsetAutoScale(v) end,
 	setpolar = function(gnuPlot) gnuPlot:setPloar()  end,
 	unsetpolar = function(gnuPlot) gnuPlot:unsetPloar() end,
@@ -47,14 +47,15 @@ local funcTable <const> = ReadOnly({
 	bmargin = function(gnuPlot,v) gnuPlot:setBMargin(v) end,
 	margins = function(gnuPlot,v) gnuPlot:setMargins(v) end,
 	setminussign = function(gnuPlot) gnuPlot:setMinusSign() end,
-	border = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBorderTable(v) else gnuPlot:setBorder(v) end end,
+	border = function(gnuPlot,v) gnuPlot:setBorder(v) end,
 	unsetborder = function(gnuPlot) gnuPlot:unsetBorder() end,
-	boxwidth = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setBoxWidthTable(v) else gnuPlot:setBoxWidth(v) end end,
+	boxwidth = function(gnuPlot,v) gnuPlot:setBoxWidth(v) end,
 	colorsequence = function(gnuPlot,v) gnuPlot:setColorSequence(v) end,
 	clip = function(gnuPlot,v) gnuPlot:setClip(v) end,
 	unsetclip = function(gnuPlot,v) gnuPlot:unsetClip(v) end,
-	cntrlabel = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setCntrLabelTable(v) else gnuPlot:setCntrLabel(v) end end,
-	cntrparam = function(gnuPlot,v) if type(v) == "table" then gnuPlot:setCntrParamTable(v) else gnuPlot:setCntrParam(v) end end
+	cntrlabel = function(gnuPlot,v) gnuPlot:setCntrLabel(v) end,
+	cntrparam = function(gnuPlot,v) gnuPlot:setCntrParam(v) end,
+	cntrlabel = function(gnuPlot,v) gnuPlot:setColorBox(v) end
 })
 
 --table which maps options for plot command to functions which set those commands.
@@ -64,7 +65,6 @@ local plotFuncTable <const> = ReadOnly({
 
 --add option to options table with a null check on the value.
 local function addOneOptionToTable(self,option,value1)
-	io.write("option is: ",option," value1 is: ",value1,"\n")
    return self:addOption(option .. (value1 and value1 or ""))
 end
 
@@ -108,16 +108,13 @@ local cntrlParamCmds <const> = ReadOnly({
 	{"order",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"levels",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
-
-function GnuPlot:setCntrParamTable(tbl)
-	return setCommandsFromTable(self,{"set cntrparam "},cntrlParamCmds,tbl)
-
-end
-
 function GnuPlot:setCntrParam(v)
-	return addOneOptionToTable(self,"set cntrparam ",v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set cntrparam "},cntrlParamCmds,v)
+	else
+		return addOneOptionToTable(self,"set cntrparam ",v)
+	end
 end
-
 
 local cntrlCommands = ReadOnly({
 	{"format",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl)  end},
@@ -128,11 +125,11 @@ local cntrlCommands = ReadOnly({
 })
 
 function GnuPlot:setCntrLabel(v)
-	return addOneOptionToTable(self,"set ctrnlable ",v)
-end
-
-function GnuPlot:setCntrLabelTable(tbl)
-	return setCommandsFromTable(self,{"set cntrlabel"},cntrlCommands,tbl)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set cntrlabel"},cntrlCommands,tbl)
+	else
+		return addOneOptionToTable(self,"set ctrnlable ",v)
+	end
 end
 
 function GnuPlot:unsetClip(v)
@@ -149,12 +146,12 @@ local boxWidthCommands <const> = ReadOnly({
 	{"relative",function(aC,cmd) setCommandTableCmdOnly(aC,cmd)  end}
 })
 
-function GnuPlot:setBoxWidthTable(tbl)
-	return setCommandsFromTable(self,{"set boxwidth"},boxWidthCommands,tbl)
-end
-
 function GnuPlot:setBoxWidth(v)
-	return addOneOptionToTable(self,"set boxwidth ",v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set boxwidth"},boxWidthCommands,v)
+	else
+		return addOneOptionToTable(self,"set boxwidth ",v)
+	end
 end
 
 function GnuPlot:setColorSequence(v)
@@ -181,11 +178,14 @@ function GnuPlot:unsetBorder()
 end
 
 function GnuPlot:setBorder(v)
-	return addOneOptionToTable(self,"set border ",v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set border"},borderCommands,v)
+	else
+		return addOneOptionToTable(self,"set border ",v)
+	end
 end
 
 function GnuPlot:setBorderTable(tbl)
-	return setCommandsFromTable(self,{"set border"},borderCommands,tbl)
 end
 
 function GnuPlot:setMinusSign()
@@ -241,10 +241,6 @@ function GnuPlot:unsetArrow(tag)
 	return addOneOptionToTable(self,"unset arrow ",tag)
 end
 
-function GnuPlot:setArrow(v)
-	return addOneOptionToTable(self,"set arrow ",v)
-end
-
 --table which holds all the arrow Commands.
 local arrowCommandList <const> = ReadOnly({
 	{"tag",function(aC,cmd,tbl) setCommandTableValueOnly(aC,cmd,tbl) end},
@@ -279,8 +275,12 @@ local arrowCommandList <const> = ReadOnly({
 	{"dt",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
 
-function GnuPlot:setArrowByTabl(tbl)
-	return setCommandsFromTable(self,{"set arrow"},arrowCommandList,tbl)
+function GnuPlot:setArrow(v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set arrow"},arrowCommandList,tbl)
+	else
+		return addOneOptionToTable(self,"set arrow ",v)
+	end
 end
 
 function GnuPlot:resetBind()
@@ -365,12 +365,12 @@ local timeStampCmds <const> = ReadOnly({
 	{"textcolor",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
 
-function GnuPlot:setTimeStampTable(tbl)
-	return setCommandsFromTable(self,{"set timestamp"},timeStampCmds,tbl)
-end
-
 function GnuPlot:setTimeStamp(v)
-	return addOneOptionToTable(self,"set timestamp ",v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set timestamp"},timeStampCmds,tbl)
+	else
+		return addOneOptionToTable(self,"set timestamp ",v)
+	end
 end
 
 function GnuPlot:setOut(value)
