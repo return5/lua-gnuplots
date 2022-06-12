@@ -100,11 +100,11 @@ local function setCommandsFromTable(self,commands,commandList,tbl)
 end
 
 local cntrlCommands = ReadOnly({
-    {"format",function(gnuPlot,v) gnuPlot:addOneOptionToTable("")  end},
-    {"font",function()  end},
-    {"start", function() end},
-    {"interval", function () end},
-    {"onecolor", function()  end}
+    {"format",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl)  end},
+    {"font",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"start", function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"interval", function (aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"onecolor", function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
 
 function GnuPlot:setCntrLabel(v)
@@ -124,9 +124,9 @@ function GnuPlot:setClip(v)
 end
 
 local boxWidthCommands <const> = ReadOnly({
-    {"width",function()  end},
-    {"absolute",function()  end},
-    {"relative",function()  end}
+    {"width",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
+    {"absolute",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
+    {"relative",function(aC,cmd) setCommandTableCmdOnly(aC,cmd)  end}
 })
 
 function GnuPlot:setBoxWidthTable(tbl)
