@@ -57,7 +57,18 @@ local funcTable <const> = ReadOnly({
 	cntrparam = function(gnuPlot,v) gnuPlot:setCntrParam(v) end,
 	colorbox = function(gnuPlot,v) gnuPlot:setColorBox(v) end,
 	contour = function(gnuPlot,v) gnuPlot:setContour(v) end,
-	unsetcontour = function(gnuPlot) gnuPlot:unsetcontour() end
+	unsetcontour = function(gnuPlot) gnuPlot:unsetcontour() end,
+	dashtype = function(gnuPlot,v) gnuPlot:setDashType(v) end,
+	dt = function(gnuPlot,v) gnuPlot:setDashType(v) end,
+	columnheaders = function(gnuPlot) gnuPlot:setColumnHeaders() end,
+	unsetcolumnheaders = function(gnuPlot) gnuPlot:unsetColumnHeaders() end,
+	fortran = function(gnuPlot) gnuPlot:setDataFileFortran() end,
+	unsetfortran = function(gnuPlot) gnuPlot:unsetDataFileFortran() end,
+	nofpe_trap = function(gnuPlot) gnuPlot:setDataFileNoFPE() end,
+	missing = function(gnuPlot,v) gnuPlot:setDataFileMissing(v) end,
+	separator = function(gnuPlot,v) gnuPlot:setDataFileSeperator(v) end,
+	commentschars = function(gnuPlot,v) gnuPlot:setDataFileCommentsChars(v) end,
+	unsetcommentschars = function(gnuPlot,v) gnuPlot:unsetDataFileCommentsChars(v) end,
 })
 
 --table which maps options for plot command to functions which set those commands.
@@ -101,6 +112,59 @@ local function setCommandsFromTable(self,commands,commandList,tbl)
 	return self:addOption(concat(commands, " "))
 end
 
+function GnuPlot:unsetDataFileCommentsChars()
+	return self:addOption("unset commentschars")
+end
+
+function GnuPlot:setDataFileCommentsChars(v)
+	return addOneOptionToTable(self,"set datafile commentschars ",v)
+end
+
+function GnuPlot:setDataFileSeparator(v)
+	return addOneOptionToTable(self,"set datafile separator ",v)
+end
+
+function GnuPlot:unsetDataFileMissing()
+	return self:addOption("unset datafile")
+end
+
+function GnuPlot:setDataFileMissing(v)
+	return addOneOptionToTable(self,"set datafile missing ",v)
+end
+
+function GnuPlot:setDataFileNoFPE()
+	return self:addOption("set datafile nofpe_trap")
+end
+
+function GnuPlot:unsetDataFileFortran()
+	return self:addOption("unset datafile fortran")
+end
+
+function GnuPlot:setDataFileFortran()
+	return self:addOption("set datafile fortran")
+end
+
+function GnuPlot:unsetColumnHeaders()
+	return self:addOption("unset datafile columnheaders")
+end
+
+function GnuPlot:setColumnHeaders()
+	return self:addOption("set datafile columnheaders")
+end
+
+function GnuPlot:setDashType(v)
+	return addOneOptionToTable(self,"set dashtype ",v)
+end
+
+function GnuPlot:unsetContour()
+	return addOneOptionToTable(self,"unset contour")
+end
+
+function GnuPlot:setContour(v)
+	return addOneOptionToTable(self,"set contour ",v)
+end
+
+
 local colorBoxCmds <const> = ReadOnly({
 	{"vertical",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
 	{"horizontal",function(aC,cmd) setCommandTableCmdOnly(aC,cmd) end},
@@ -116,14 +180,6 @@ local colorBoxCmds <const> = ReadOnly({
 	{"bdefault",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"border",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}
 })
-
-function GnuPlot:unsetContour()
-	return addOneOptionToTable(self,"unset contour")
-end
-
-function GnuPlot:setContour(v)
-	return addOneOptionToTable(self,"set contour ",v)
-end
 
 function GnuPlot:unsetColorBox()
 	return self:addOption("unset colorbox")
