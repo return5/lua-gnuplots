@@ -69,6 +69,7 @@ local funcTable <const> = ReadOnly({
 	separator = function(gnuPlot,v) gnuPlot:setDataFileSeperator(v) end,
 	commentschars = function(gnuPlot,v) gnuPlot:setDataFileCommentsChars(v) end,
 	unsetcommentschars = function(gnuPlot,v) gnuPlot:unsetDataFileCommentsChars(v) end,
+	datafile = function(gnuPlot,v) gnuPlot:setDataFile(v) end,
 })
 
 --table which maps options for plot command to functions which set those commands.
@@ -110,6 +111,40 @@ end
 local function setCommandsFromTable(self,commands,commandList,tbl)
 	loopCommandTables(commandList,tbl,commands)
 	return self:addOption(concat(commands, " "))
+end
+
+local datafileBinaryCmds <const> = ReadOnly({
+	filetype = function(gnuPlot,v) addOneOptionToTable(gnuPlot,"filetype=",v) end,
+	array = function(gnuPlot,v) addOneOptionToTable(gnuPlot,"array=",v) end,
+	format =  function(gnuPlot,v) addOneOptionToTable(gnuPlot,"format=",v) end,
+})
+
+local dataFileCmds <const> = ReadOnly({
+	fortran = function(gnuPlot,v) gnuPlot:setDataFileFortran(v) end,
+	unsetfortran = function(gnuPlot,v) gnuPlot:unsetDataFileFortran(v) end,
+	nofpe_trap = function(gnuPlot,v) gnuPlot:setDataFileNoFPE(v) end,
+	missing = function(gnuPlot,v) gnuPlot:setDataFileMissing(v) end,
+	unsetmissing =  function(gnuPlot,v) gnuPlot:unsetDataFileMissing(v) end,
+	separator =  function(gnuPlot,v) gnuPlot:setDataFileSeparator(v) end,
+	commentschars =  function(gnuPlot,v) gnuPlot:setDataFileCommentsChars(v) end,
+	unsetcommentschars =  function(gnuPlot,v) gnuPlot:unsetDataFilCommentsChars(v) end,
+	binary =  function(gnuPlot,v) gnuPlot:setDataFileBinary(v) end
+})
+
+function GnuPlot:setDataFile(v)
+	if type(v) == "table" then
+		setCommandsFromTable(self,{"set datafile"},dataFileCmds,v)
+	else
+		return addOneOptionToTable(self,"set datafile ",v)
+	end
+end
+
+function GnuPlot:setDataFileBinary(v)
+	if type(v) == "table" then
+		return setCommandsFromTable(self,{"set datafile binary"},datafileBinaryCmds,v)
+	else
+		return addOneOptionToTable(self,"set datafile binary ",v)
+	end
 end
 
 function GnuPlot:unsetDataFileCommentsChars()
@@ -448,8 +483,8 @@ end
 local timeStampCmds <const> = ReadOnly({
 	{"format",function(aC,cmd,tbl)  setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"margin",function(aC,cmd,tbl) setCommandTableValueOnly(aC,cmd,tbl) end},
-	{"rotate",function(aC,cmd,tbl) setCommandTableCmdOnly(aC,cmd) end},
-	{"norotate",function(aC,cmd,tbl) setCommandTableCmdOnly(aC,cmd) end},
+	{"rotate",function(aC,cmd,_) setCommandTableCmdOnly(aC,cmd) end},
+	{"norotate",function(aC,cmd,_) setCommandTableCmdOnly(aC,cmd) end},
 	{"offset",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"front",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end},
 	{"textcolor",function(aC,cmd,tbl) setCommandTableCmdAndValue(aC,cmd,tbl) end}

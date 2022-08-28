@@ -41,3 +41,4 @@ luac.out
 *.iml
 .idea/
 *testing.lua
+New/
